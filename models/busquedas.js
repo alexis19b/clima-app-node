@@ -8,8 +8,7 @@ class Busquedas {
   }
   get paramsMaxbox() {
     return {
-      access_token:
-        "pk.eyJ1IjoiYWxleGlzMTliIiwiYSI6ImNrc2Y0OThubTE3NnAyeG9tODZya2h0b2QifQ.sgK3ujUI59FCHCnbNu2EvA",
+      access_token: process.env.MAPBOX_KEY,
       limit: 5,
       language: "es",
     };
@@ -22,10 +21,12 @@ class Busquedas {
         params: this.paramsMaxbox,
       });
       const resp = await intance.get();
-      console.log(resp.data);
-
-      console.log(resp.data);
-      return [];
+      return resp.data.features.map((lugar) => ({
+        id: lugar.id,
+        nombre: lugar.place_name,
+        lgn: lugar.center[0],
+        lat: lugar.center[1],
+      }));
     } catch (error) {
       return [];
     }
