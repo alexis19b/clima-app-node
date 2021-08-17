@@ -1,16 +1,26 @@
+const fs = require("fs");
 const axios = require("axios");
 
 class Busquedas {
-  historial = ["Barinas", "Caracas", "Carabobo"];
+  historial = [];
+  dbPath = "./db/database.json";
 
   constructor() {
     //TODO: Leer Base de datos si exitos
+    this.leerDB();
   }
   get paramsMaxbox() {
     return {
       access_token: process.env.MAPBOX_KEY,
       limit: 5,
       language: "es",
+    };
+  }
+  get paramsWhather() {
+    return {
+      appid: process.env.OPENWEATHER_KEY,
+      units: "metric",
+      lang: "es",
     };
   }
   async ciudad(lugar = "") {
@@ -31,5 +41,40 @@ class Busquedas {
       return [];
     }
   }
+
+  async climaLugar(lat, lon) {
+    try {
+      const intance = axios.create({
+        baseURL: `https://api.openweathermap.org/data/2.5/weather`,
+        params: { ...this.paramsWhather, lat, lon },
+      });
+      const resp = await intance.get();
+      const { weather, main } = resp.data;
+      return {
+        temperatura: main.temp,
+        min: main.temp_min,
+        max: main.temp_max,
+        cli: weather[0].description,
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  agregarHistorial(lugar = "") {
+    if (this.historial.includes(lugar.toLocaleLowerCase())) {
+      return;
+    }
+    this.historial.unshift(lugar.toLocaleLowerCase());
+    this.guardarDB();
+  }
+  guardarDB() {
+    const payload = {
+      historial: this.historial,
+    };
+    fs.writeFileSync(this.dbPath, JSON.stringify(payload));
+  }
+
+  leerDB() {}
 }
 module.exports = Busquedas;
